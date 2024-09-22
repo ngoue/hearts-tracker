@@ -1,0 +1,15 @@
+# Xcode
+build/
+DerivedData/
+
+# User-specific Xcode settings
+*.xcuserdatad
+xcuserdata/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# MacOS
+.DS_Store
+
