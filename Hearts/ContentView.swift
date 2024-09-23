@@ -44,7 +44,6 @@ class GameModel {
                 otherPlayer.score += 26
             }
         }
-        self.nextRound()
     }
 
     func dealer() -> Player {
