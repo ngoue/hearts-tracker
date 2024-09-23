@@ -56,9 +56,9 @@ class GameModel {
             case 0:
                 return "Pass left"
             case 1:
-                return "Pass across"
-            case 2:
                 return "Pass right"
+            case 2:
+                return "Pass across"
             case 3:
                 return "Hold"
             default:
