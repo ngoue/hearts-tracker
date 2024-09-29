@@ -21,7 +21,8 @@ class Player: Identifiable {
 }
 
 @Observable
-class GameModel {
+class GameModel: ObservableObject {
+    var accentColor: Color = .red
     var isEditing = false
     var round = 0 {
         didSet {
@@ -93,14 +94,66 @@ class GameModel {
     }
 }
 
+struct Settings: View {
+    @EnvironmentObject var game: GameModel
+    let availableColors: [Color] = [.red, .blue, .green]
+
+    var body: some View {
+        VStack {
+            Text("Settings")
+
+            Spacer()
+
+            HStack {
+                Text("Accent color")
+                Spacer()
+                HStack(spacing: 0) {
+                    ForEach(self.availableColors, id: \.self) { color in
+                        Button {
+                            self.game.accentColor = color
+                        } label: {
+                            Label("\(color) accent", systemImage: "circle.fill")
+                                .font(.system(size: 40.0))
+                                .labelStyle(.iconOnly)
+                                .foregroundStyle(color)
+                                .symbolRenderingMode(.monochrome)
+                                .overlay {
+                                    self.game.accentColor == color
+                                        ? Circle().stroke(color, lineWidth: 2.0).opacity(0.5)
+                                        : nil
+                                }
+                        }
+                        .buttonStyle(NoOpacityButtonStyle())
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+}
+
 struct HeaderActions: View {
     @State var game: GameModel
+    @State private var showSettings = false
     @State private var showResetAlert = false
 
     var body: some View {
         HStack {
             Text("Hearts").font(.largeTitle).fontWeight(.heavy)
             Spacer()
+            Button(action: {
+                withAnimation {
+                    self.showSettings.toggle()
+                }
+            }) {
+                Label("Settings", systemImage: "gearshape.circle.fill")
+                    .font(.largeTitle)
+                    .labelStyle(.iconOnly)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .disabled(self.game.isEditing)
             Button(action: {
                 withAnimation {
                     self.game.isEditing.toggle()
@@ -121,14 +174,19 @@ struct HeaderActions: View {
                     .symbolRenderingMode(.hierarchical)
             }
             .disabled(self.game.isEditing)
-            .alert("Reset game", isPresented: self.$showResetAlert) {
-                Button("Cancel", role: .cancel) {}
-                Button("Reset", role: .destructive) {
-                    self.game.reset()
-                }
-            }
         }
         .padding()
+        .sheet(isPresented: self.$showSettings) {
+            Settings()
+                .presentationDetents([.large])
+        }
+        .actionSheet(isPresented: self.$showResetAlert) {
+            ActionSheet(
+                title: Text("Reset Game"),
+                message: Text("Are you sure you want to reset the game?"),
+                buttons: [.destructive(Text("Reset"), action: self.game.reset), .cancel()]
+            )
+        }
     }
 }
 
@@ -184,7 +242,6 @@ struct PlayerView: View {
     var buttonSpacing: CGFloat {
         self.compact ? 5.0 : 7.0
     }
-
 
     func isDealer() -> Bool {
         return self.player.id == self.game.dealer().id
@@ -293,7 +350,7 @@ struct PlayerView: View {
 }
 
 struct ContentView: View {
-    @State var game = GameModel()
+    @StateObject var game = GameModel()
     let compactSize: CGFloat = 700.0
 
     var body: some View {
@@ -314,6 +371,8 @@ struct ContentView: View {
                 FooterActions(game: self.game)
             }
         }
+        .environmentObject(self.game)
+        .accentColor(self.game.accentColor)
     }
 }
 
