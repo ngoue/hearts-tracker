@@ -173,6 +173,7 @@ struct PlayerView: View {
     @State private var moonBounce: Int = 0
 
     let buttonSize: CGFloat = 45.0
+    let buttonSpacing: CGFloat = 5.0
 
     func isDealer() -> Bool {
         return self.player.id == self.game.dealer().id
@@ -191,7 +192,7 @@ struct PlayerView: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(spacing: self.buttonSpacing) {
             if self.game.isEditing {
                 TextField("Player \(self.playerNumber())", text: self.$player.name)
                     .textFieldStyle(.roundedBorder)
@@ -211,8 +212,8 @@ struct PlayerView: View {
 
             Spacer()
 
-            VStack {
-                HStack {
+            VStack(spacing: self.buttonSpacing) {
+                HStack(spacing: self.buttonSpacing) {
                     Button(action: {
                         self.player.score += self.game.isEditing ? -1 : 1
                     }) {
@@ -233,7 +234,7 @@ struct PlayerView: View {
                             .background(Circle().fill(Color.accentColor))
                     }
                 }
-                HStack {
+                HStack(spacing: self.buttonSpacing) {
                     Button(action: {
                         self.player.score += self.game.isEditing ? -13 : 13
                     }) {
@@ -273,7 +274,7 @@ struct ContentView: View {
 
             Spacer()
 
-            VStack {
+            VStack(spacing: .zero) {
                 ForEach(self.game.players) { player in
                     PlayerView(player: player, game: self.game)
                 }
