@@ -8,5 +8,6 @@ An iOS app for tracking a game of Hearts
     - Old vs new rules
     - Auto-advance round (when points are all scored)
     - Accent color
-        - Free accent colors (red, blue, green)
+        - ✅ Free accent colors (red, blue, green)
         - Paid accent colors (gradients? if I can figure it out)
+        - Persist accent color selection

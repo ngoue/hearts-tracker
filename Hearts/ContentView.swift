@@ -135,7 +135,7 @@ struct Settings: View {
 }
 
 struct HeaderActions: View {
-    @State var game: GameModel
+    @EnvironmentObject var game: GameModel
     @State private var showSettings = false
     @State private var showResetAlert = false
 
@@ -191,7 +191,7 @@ struct HeaderActions: View {
 }
 
 struct FooterActions: View {
-    @State var game: GameModel
+    @EnvironmentObject var game: GameModel
 
     var body: some View {
         HStack {
@@ -226,8 +226,8 @@ struct FooterActions: View {
 }
 
 struct PlayerView: View {
+    @EnvironmentObject var game: GameModel
     @State var player: Player
-    @State var game: GameModel
     @State private var moonBounce: Int = 0
     let compact: Bool
 
@@ -356,19 +356,19 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                HeaderActions(game: self.game)
+                HeaderActions()
 
                 Spacer()
 
                 VStack(spacing: .zero) {
                     ForEach(self.game.players) { player in
-                        PlayerView(player: player, game: self.game, compact: geometry.size.height < self.compactSize)
+                        PlayerView(player: player, compact: geometry.size.height < self.compactSize)
                     }
                 }
 
                 Spacer()
 
-                FooterActions(game: self.game)
+                FooterActions()
             }
         }
         .environmentObject(self.game)
