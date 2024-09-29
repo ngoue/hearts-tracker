@@ -171,9 +171,20 @@ struct PlayerView: View {
     @State var player: Player
     @State var game: GameModel
     @State private var moonBounce: Int = 0
+    let compact: Bool
 
-    let buttonSize: CGFloat = 45.0
-    let buttonSpacing: CGFloat = 5.0
+    var spacing: CGFloat {
+        self.compact ? 10.0 : 20.0
+    }
+
+    var buttonSize: CGFloat {
+        self.compact ? 45.0 : 50.0
+    }
+
+    var buttonSpacing: CGFloat {
+        self.compact ? 5.0 : 7.0
+    }
+
 
     func isDealer() -> Bool {
         return self.player.id == self.game.dealer().id
@@ -191,8 +202,19 @@ struct PlayerView: View {
         }
     }
 
+    func needsBottomBorder() -> Bool {
+        if self.playerNumber() == 4 {
+            return false
+        } else if !self.game.isEditing && self.isDealer() {
+            return false
+        } else if !self.game.isEditing && self.playerNumber() == self.game.roundIndex() {
+            return false
+        }
+        return true
+    }
+
     var body: some View {
-        HStack(spacing: self.buttonSpacing) {
+        HStack(alignment: .center, spacing: self.spacing) {
             if self.game.isEditing {
                 TextField("Player \(self.playerNumber())", text: self.$player.name)
                     .textFieldStyle(.roundedBorder)
@@ -200,15 +222,12 @@ struct PlayerView: View {
             } else {
                 Text(self.playerName())
                     .font(.headline)
-                    .padding(.leading)
             }
 
-            Spacer()
             Spacer()
 
             Text("\(self.player.score)")
                 .font(.largeTitle)
-                .padding(.trailing)
 
             Spacer()
 
@@ -260,29 +279,40 @@ struct PlayerView: View {
                 }
             }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, self.spacing)
         .background(!self.game.isEditing && self.isDealer() ? Color.accentColor.opacity(0.15) : .clear)
+        .overlay(alignment: .bottom) {
+            self.needsBottomBorder()
+                ? Rectangle()
+                .frame(height: 1)
+                .foregroundColor(.secondary.opacity(0.15))
+                : nil
+        }
     }
 }
 
 struct ContentView: View {
     @State var game = GameModel()
+    let compactSize: CGFloat = 700.0
 
     var body: some View {
-        VStack {
-            HeaderActions(game: self.game)
+        GeometryReader { geometry in
+            VStack {
+                HeaderActions(game: self.game)
 
-            Spacer()
+                Spacer()
 
-            VStack(spacing: .zero) {
-                ForEach(self.game.players) { player in
-                    PlayerView(player: player, game: self.game)
+                VStack(spacing: .zero) {
+                    ForEach(self.game.players) { player in
+                        PlayerView(player: player, game: self.game, compact: geometry.size.height < self.compactSize)
+                    }
                 }
+
+                Spacer()
+
+                FooterActions(game: self.game)
             }
-
-            Spacer()
-
-            FooterActions(game: self.game)
         }
     }
 }
