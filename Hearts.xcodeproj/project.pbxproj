@@ -14,6 +14,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C0300E032CA917F5007FF6AA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C062DDCE2C993C5B005D613F /* Hearts.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hearts.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C062DDD12C993C5B005D613F /* HeartsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartsApp.swift; sourceTree = "<group>"; };
 		C062DDD32C993C5B005D613F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -37,6 +38,7 @@
 			children = (
 				C062DDD02C993C5B005D613F /* Hearts */,
 				C062DDCF2C993C5B005D613F /* Products */,
+				C0300E032CA917F5007FF6AA /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
