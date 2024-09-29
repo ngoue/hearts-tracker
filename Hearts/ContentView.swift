@@ -172,6 +172,8 @@ struct PlayerView: View {
     @State var game: GameModel
     @State private var moonBounce: Int = 0
 
+    let buttonSize: CGFloat = 45.0
+
     func isDealer() -> Bool {
         return self.player.id == self.game.dealer().id
     }
@@ -216,7 +218,7 @@ struct PlayerView: View {
                     }) {
                         Text(self.game.isEditing ? "-1" : "+1")
                             .font(.headline)
-                            .frame(width: 50, height: 50)
+                            .frame(width: self.buttonSize, height: self.buttonSize)
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
@@ -226,7 +228,7 @@ struct PlayerView: View {
                     }) {
                         Text(self.game.isEditing ? "-5" : "+5")
                             .font(.headline)
-                            .frame(width: 50, height: 50)
+                            .frame(width: self.buttonSize, height: self.buttonSize)
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
@@ -237,7 +239,7 @@ struct PlayerView: View {
                     }) {
                         Text(self.game.isEditing ? "-13" : "+13")
                             .font(.headline)
-                            .frame(width: 50, height: 50)
+                            .frame(width: self.buttonSize, height: self.buttonSize)
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
@@ -247,9 +249,9 @@ struct PlayerView: View {
                         self.moonBounce += 1
                     }) {
                         Label("Shoot the moon", systemImage: "moon.circle.fill")
-                            .font(.system(size: 50.0))
-                            .frame(width: 50, height: 50)
-                            .background(Circle().fill(Color.white))
+                            .font(.system(size: self.buttonSize))
+                            .frame(width: self.buttonSize, height: self.buttonSize)
+                            .foregroundStyle(Color.white, Color.accentColor)
                     }
                     .symbolEffect(.bounce, value: self.moonBounce)
                     .labelStyle(.iconOnly)
