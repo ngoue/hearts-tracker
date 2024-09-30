@@ -276,17 +276,16 @@ struct PlayerView: View {
                 TextField("Player \(self.playerNumber())", text: self.$player.name)
                     .textFieldStyle(.roundedBorder)
                     .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 Text(self.playerName())
                     .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            Spacer()
 
             Text("\(self.player.score)")
                 .font(.largeTitle)
-
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .center)
 
             VStack(spacing: self.buttonSpacing) {
                 HStack(spacing: self.buttonSpacing) {
@@ -335,6 +334,7 @@ struct PlayerView: View {
                     .disabled(self.game.isEditing)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
         .padding(.vertical, self.spacing)
