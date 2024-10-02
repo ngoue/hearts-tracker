@@ -281,11 +281,11 @@ struct PlayerView: View {
                 Text(self.playerName())
                     .font(.headline)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(1)
             }
 
             Text("\(self.player.score)")
                 .font(.largeTitle)
-                .frame(maxWidth: .infinity, alignment: .center)
 
             VStack(spacing: self.buttonSpacing) {
                 HStack(spacing: self.buttonSpacing) {
@@ -334,7 +334,7 @@ struct PlayerView: View {
                     .disabled(self.game.isEditing)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal)
         .padding(.vertical, self.spacing)
