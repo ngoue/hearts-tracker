@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+let SelectedAccentColorKey = "SelectedAccentColor"
+
 @Observable
 class Player: Identifiable {
     let id = UUID()
@@ -20,11 +22,13 @@ class Player: Identifiable {
     }
 }
 
-@Observable
 class GameModel: ObservableObject {
-    var accentColor: Color = .red
-    var isEditing = false
-    var round = 0 {
+    // Persisted settings
+    @AppStorage(SelectedAccentColorKey) var selectedAccentColor: AccentColor = .Red
+
+    // Ephemeral settings
+    @Published var isEditing = false
+    @Published var round = 0 {
         didSet {
             if self.round < 0 {
                 self.round = 0
@@ -49,6 +53,10 @@ class GameModel: ObservableObject {
 
     func dealer() -> Player {
         return self.players[self.roundIndex()]
+    }
+
+    func tintColor() -> Color {
+        return AccentColor.colorForAccent(accent: self.selectedAccentColor)
     }
 
     func actionLabel() -> String {
@@ -108,18 +116,18 @@ struct Settings: View {
                 Text("Accent color")
                 Spacer()
                 HStack(spacing: 0) {
-                    ForEach(self.availableColors, id: \.self) { color in
+                    ForEach(AccentColor.all(), id: \.self) { accent in
                         Button {
-                            self.game.accentColor = color
+                            self.game.selectedAccentColor = accent
                         } label: {
-                            Label("\(color) accent", systemImage: "circle.fill")
+                            Label("\(accent) accent", systemImage: "circle.fill")
                                 .font(.system(size: 40.0))
                                 .labelStyle(.iconOnly)
-                                .foregroundStyle(color)
+                                .foregroundStyle(AccentColor.colorForAccent(accent: accent))
                                 .symbolRenderingMode(.monochrome)
                                 .overlay {
-                                    self.game.accentColor == color
-                                        ? Circle().stroke(color, lineWidth: 2.0).opacity(0.5)
+                                    self.game.selectedAccentColor == accent
+                                        ? Circle().stroke(AccentColor.colorForAccent(accent: accent), lineWidth: 2.0).opacity(0.5)
                                         : nil
                                 }
                         }
@@ -372,7 +380,7 @@ struct ContentView: View {
             }
         }
         .environmentObject(self.game)
-        .accentColor(self.game.accentColor)
+        .accentColor(self.game.tintColor())
     }
 }
 
