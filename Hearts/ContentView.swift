@@ -7,27 +7,21 @@
 
 import SwiftUI
 
-let SelectedAccentColorKey = "SelectedAccentColor"
-let AutoAdvanceKey = "AutoAdvance"
-
 @Observable
 class Player: Identifiable {
     let id = UUID()
     var name: String = ""
-    var score: Int = 0 {
-        didSet {
-            if self.score < 0 {
-                self.score = 0
-            }
-        }
-    }
+    var score: Int = 0
 }
 
 class GameModel: ObservableObject {
-    // Persisted settings
+    // Persisted settings/state
+    @AppStorage(MoonRuleKey) var moonRules: MoonRules = .Old
     @AppStorage(SelectedAccentColorKey) var selectedAccentColor: AccentColor = .Red
 
-    // Ephemeral settings
+    // Ephemeral settings/state
+    @Published var showSettings = false
+    @Published var showResetAlert = false
     @Published var isEditing = false
     @Published var round = 0 {
         didSet {
@@ -45,10 +39,14 @@ class GameModel: ObservableObject {
     ]
 
     func shootTheMoon(player: Player) {
-        self.players.forEach { otherPlayer in
-            if player.id != otherPlayer.id {
-                otherPlayer.score += 26
+        if self.moonRules == .Old {
+            self.players.forEach { otherPlayer in
+                if player.id != otherPlayer.id {
+                    otherPlayer.score += 26
+                }
             }
+        } else {
+            player.score -= 26
         }
     }
 
@@ -107,61 +105,80 @@ struct Settings: View {
     @EnvironmentObject var game: GameModel
     let availableColors: [Color] = [.red, .blue, .green]
 
-    var body: some View {
-        VStack(spacing: 20.0) {
-            Text("Settings")
-                .font(.title).fontWeight(.bold)
-
-            Spacer()
-
-            HStack(alignment: .center) {
-                VStack(alignment: .leading) {
-                    Text("Accent color")
-                    Text("Change the accent color to spice things up!")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-                Spacer()
-                HStack(spacing: 0) {
-                    ForEach(AccentColor.all(), id: \.self) { accent in
-                        Button {
-                            self.game.selectedAccentColor = accent
-                        } label: {
-                            Label("\(accent) accent", systemImage: "circle.fill")
-                                .font(.system(size: 40.0))
-                                .labelStyle(.iconOnly)
-                                .foregroundStyle(AccentColor.colorForAccent(accent: accent))
-                                .symbolRenderingMode(.monochrome)
-                                .overlay {
-                                    self.game.selectedAccentColor == accent
-                                        ? Circle().stroke(AccentColor.colorForAccent(accent: accent), lineWidth: 2.0).opacity(0.5)
-                                        : nil
-                                }
-                        }
-                        .buttonStyle(NoOpacityButtonStyle())
-                    }
-                }
+    func sendFeedback() {
+        let email = "jordanthomasg@icloud.com"
+        let subject = "Hearts Scoreboard Feedback"
+        if let url = URL(string: "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url)
             }
-
-            Spacer()
-
-            HStack {
-                Text("Version \(Bundle.main.appVersionLong)")
-                Text("•")
-                Text("Build \(Bundle.main.appBuild)")
-            }
-            .monospaced()
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
-        .padding()
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    Picker(selection: self.$game.moonRules) {
+                        ForEach(MoonRules.allCases) { rule in
+                            Text(rule.rawValue.capitalized)
+                        }
+                    } label: {
+                        Text("Shoot the Moon Rules")
+                    }
+                } footer: {
+                    Text(
+                        self.game.moonRules == .Old
+                            ? "The shooter scores 0 points and each opponent scores 26 points"
+                            : "The shooter scores -26 points"
+                    )
+                }
+
+                Section {
+                    HStack(alignment: .center) {
+                        Text("Accent Color")
+                        Spacer()
+                        HStack(spacing: 0) {
+                            ForEach(AccentColor.allCases, id: \.self) { accent in
+                                Button {
+                                    self.game.selectedAccentColor = accent
+                                } label: {
+                                    Label("\(accent) accent", systemImage: "circle.fill")
+                                        .font(.system(size: 40.0))
+                                        .labelStyle(.iconOnly)
+                                        .foregroundStyle(AccentColor.colorForAccent(accent: accent))
+                                        .symbolRenderingMode(.monochrome)
+                                        .overlay {
+                                            self.game.selectedAccentColor == accent
+                                                ? Circle().stroke(AccentColor.colorForAccent(accent: accent), lineWidth: 2.0).opacity(0.5)
+                                                : nil
+                                        }
+                                }
+                                .buttonStyle(NoOpacityButtonStyle())
+                            }
+                        }
+                    }
+                } footer: {
+                    Text("Change the accent color to spice things up")
+                }
+
+                Section {
+                    Button(action: {
+                        self.sendFeedback()
+                    }) {
+                        Label("Send Feedback", systemImage: "envelope.fill")
+                    }
+                    LabeledContent("App Version", value: Bundle.main.appVersionLong)
+                    LabeledContent("App Build", value: Bundle.main.appBuild)
+                }
+            }
+            .navigationTitle("Settings")
+        }
     }
 }
 
 struct HeaderActions: View {
     @EnvironmentObject var game: GameModel
-    @State private var showSettings = false
-    @State private var showResetAlert = false
 
     var body: some View {
         HStack {
@@ -169,7 +186,7 @@ struct HeaderActions: View {
             Spacer()
             Button(action: {
                 withAnimation {
-                    self.showSettings.toggle()
+                    self.game.showSettings.toggle()
                 }
             }) {
                 Label("Settings", systemImage: "gearshape.circle.fill")
@@ -190,7 +207,7 @@ struct HeaderActions: View {
             }
             .contentTransition(.symbolEffect(.replace))
             Button(action: {
-                self.showResetAlert = true
+                self.game.showResetAlert = true
             }) {
                 Label("Reset", systemImage: "arrow.clockwise.circle.fill")
                     .font(.largeTitle)
@@ -200,52 +217,17 @@ struct HeaderActions: View {
             .disabled(self.game.isEditing)
         }
         .padding()
-        .sheet(isPresented: self.$showSettings) {
+        .sheet(isPresented: self.$game.showSettings) {
             Settings()
-                .presentationDetents([.medium])
+                .presentationDetents([.large])
         }
-        .actionSheet(isPresented: self.$showResetAlert) {
+        .actionSheet(isPresented: self.$game.showResetAlert) {
             ActionSheet(
                 title: Text("Reset Game"),
                 message: Text("Are you sure you want to reset the game?"),
                 buttons: [.destructive(Text("Reset"), action: self.game.reset), .cancel()]
             )
         }
-    }
-}
-
-struct FooterActions: View {
-    @EnvironmentObject var game: GameModel
-
-    var body: some View {
-        HStack {
-            Button(action: self.game.previousRound) {
-                Label("Previous round", systemImage: "chevron.left.circle.fill")
-                    .font(.largeTitle)
-                    .labelStyle(.iconOnly)
-                    .symbolRenderingMode(.hierarchical)
-            }
-            .disabled(self.game.round == 0 || self.game.isEditing)
-
-            Spacer()
-
-            VStack {
-                Text(self.game.roundLabel()).font(.caption)
-                Rectangle().frame(width: 20.0, height: 1.0).foregroundColor(.secondary)
-                Text(self.game.actionLabel())
-            }
-
-            Spacer()
-
-            Button(action: self.game.nextRound) {
-                Label("Next round", systemImage: "chevron.right.circle.fill")
-                    .font(.largeTitle)
-                    .labelStyle(.iconOnly)
-                    .symbolRenderingMode(.hierarchical)
-            }
-            .disabled(self.game.isEditing)
-        }
-        .padding()
     }
 }
 
@@ -370,6 +352,41 @@ struct PlayerView: View {
                 .foregroundColor(.secondary.opacity(0.15))
                 : nil
         }
+    }
+}
+
+struct FooterActions: View {
+    @EnvironmentObject var game: GameModel
+
+    var body: some View {
+        HStack {
+            Button(action: self.game.previousRound) {
+                Label("Previous round", systemImage: "chevron.left.circle.fill")
+                    .font(.largeTitle)
+                    .labelStyle(.iconOnly)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .disabled(self.game.round == 0 || self.game.isEditing)
+
+            Spacer()
+
+            VStack {
+                Text(self.game.roundLabel()).font(.caption)
+                Rectangle().frame(width: 20.0, height: 1.0).foregroundColor(.secondary)
+                Text(self.game.actionLabel())
+            }
+
+            Spacer()
+
+            Button(action: self.game.nextRound) {
+                Label("Next round", systemImage: "chevron.right.circle.fill")
+                    .font(.largeTitle)
+                    .labelStyle(.iconOnly)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .disabled(self.game.isEditing)
+        }
+        .padding()
     }
 }
 
