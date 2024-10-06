@@ -37,3 +37,21 @@ enum AccentColor: String, CaseIterable, Identifiable {
         }
     }
 }
+
+// Analytics Events
+let AnalyticsEventSendFeedback = "send_feedback"
+let AnalyticsEventSettingsButtonTapped = "settings_tapped"
+let AnalyticsEventEditButtonTapped = "edit_tapped"
+let AnalyticsEventEditDoneButtonTapped = "edit_done_tapped"
+let AnalyticsEventResetButtonTapped = "reset_tapped"
+let AnalyticsEventReset = "reset"
+let AnalyticsEventMoonRulesChanged = "moon_rules_changed"
+let AnalyticsEventAccentColorChanged = "accent_color_changed"
+let AnalyticsEventNextRoundButtonTapped = "next_round_tapped"
+let AnalyticsEventPreviousRoundButtonTapped = "previous_round_tapped"
+
+// Analytics Parameters
+let AnalyticsParameterPreviousMoonRule = "previous_moon_rule"
+let AnalyticsParameterSelectedMoonRule = "selected_moon_rule"
+let AnalyticsParameterPreviousAccentColor = "previous_accent_color"
+let AnalyticsParameterSelectedAccentColor = "selected_accent_color"

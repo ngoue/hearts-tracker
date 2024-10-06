@@ -5,6 +5,7 @@
 //  Created by Jordan Gardner on 9/16/24.
 //
 
+import FirebaseAnalytics
 import SwiftUI
 
 @Observable
@@ -94,6 +95,7 @@ class GameModel: ObservableObject {
     }
 
     func reset() {
+        Analytics.logEvent(AnalyticsEventReset, parameters: nil)
         self.round = 0
         self.players.forEach { player in
             player.score = 0
@@ -106,6 +108,7 @@ struct Settings: View {
     let availableColors: [Color] = [.red, .blue, .green]
 
     func sendFeedback() {
+        Analytics.logEvent(AnalyticsEventSendFeedback, parameters: nil)
         let email = "jordanthomasg@icloud.com"
         let subject = "Hearts Scoreboard Feedback"
         if let url = URL(string: "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
@@ -126,6 +129,12 @@ struct Settings: View {
                     } label: {
                         Text("Shoot the Moon Rules")
                     }
+                    .onChange(of: self.game.moonRules) { prev, tag in
+                        Analytics.logEvent(AnalyticsEventMoonRulesChanged, parameters: [
+                            AnalyticsParameterPreviousMoonRule: prev.rawValue,
+                            AnalyticsParameterSelectedMoonRule: tag.rawValue,
+                        ])
+                    }
                 } footer: {
                     Text(
                         self.game.moonRules == .Old
@@ -139,9 +148,14 @@ struct Settings: View {
                         Text("Accent Color")
                         Spacer()
                         HStack(spacing: 0) {
-                            ForEach(AccentColor.allCases, id: \.self) { accent in
+                            ForEach(AccentColor.allCases) { accent in
                                 Button {
+                                    let previous = self.game.selectedAccentColor
                                     self.game.selectedAccentColor = accent
+                                    Analytics.logEvent(AnalyticsEventAccentColorChanged, parameters: [
+                                        AnalyticsParameterPreviousAccentColor: previous.rawValue,
+                                        AnalyticsParameterSelectedAccentColor: accent.rawValue,
+                                    ])
                                 } label: {
                                     Label("\(accent) accent", systemImage: "circle.fill")
                                         .font(.system(size: 40.0))
@@ -185,6 +199,7 @@ struct HeaderActions: View {
             Text("Hearts").font(.largeTitle).fontWeight(.heavy)
             Spacer()
             Button(action: {
+                Analytics.logEvent(AnalyticsEventSettingsButtonTapped, parameters: nil)
                 withAnimation {
                     self.game.showSettings.toggle()
                 }
@@ -196,6 +211,11 @@ struct HeaderActions: View {
             }
             .disabled(self.game.isEditing)
             Button(action: {
+                if self.game.isEditing {
+                    Analytics.logEvent(AnalyticsEventEditDoneButtonTapped, parameters: nil)
+                } else {
+                    Analytics.logEvent(AnalyticsEventEditButtonTapped, parameters: nil)
+                }
                 withAnimation {
                     self.game.isEditing.toggle()
                 }
@@ -207,6 +227,7 @@ struct HeaderActions: View {
             }
             .contentTransition(.symbolEffect(.replace))
             Button(action: {
+                Analytics.logEvent(AnalyticsEventResetButtonTapped, parameters: nil)
                 self.game.showResetAlert = true
             }) {
                 Label("Reset", systemImage: "arrow.clockwise.circle.fill")
@@ -360,7 +381,10 @@ struct FooterActions: View {
 
     var body: some View {
         HStack {
-            Button(action: self.game.previousRound) {
+            Button(action: {
+                Analytics.logEvent(AnalyticsEventPreviousRoundButtonTapped, parameters: nil)
+                self.game.previousRound()
+            }) {
                 Label("Previous round", systemImage: "chevron.left.circle.fill")
                     .font(.largeTitle)
                     .labelStyle(.iconOnly)
@@ -378,7 +402,10 @@ struct FooterActions: View {
 
             Spacer()
 
-            Button(action: self.game.nextRound) {
+            Button(action: {
+                Analytics.logEvent(AnalyticsEventNextRoundButtonTapped, parameters: nil)
+                self.game.nextRound()
+            }) {
                 Label("Next round", systemImage: "chevron.right.circle.fill")
                     .font(.largeTitle)
                     .labelStyle(.iconOnly)
