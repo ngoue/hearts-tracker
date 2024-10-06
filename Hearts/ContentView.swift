@@ -8,6 +8,7 @@
 import SwiftUI
 
 let SelectedAccentColorKey = "SelectedAccentColor"
+let AutoAdvanceKey = "AutoAdvance"
 
 @Observable
 class Player: Identifiable {
@@ -107,13 +108,19 @@ struct Settings: View {
     let availableColors: [Color] = [.red, .blue, .green]
 
     var body: some View {
-        VStack {
+        VStack(spacing: 20.0) {
             Text("Settings")
+                .font(.title).fontWeight(.bold)
 
             Spacer()
 
-            HStack {
-                Text("Accent color")
+            HStack(alignment: .center) {
+                VStack(alignment: .leading) {
+                    Text("Accent color")
+                    Text("Change the accent color to spice things up!")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
                 Spacer()
                 HStack(spacing: 0) {
                     ForEach(AccentColor.all(), id: \.self) { accent in
@@ -137,6 +144,15 @@ struct Settings: View {
             }
 
             Spacer()
+
+            HStack {
+                Text("Version \(Bundle.main.appVersionLong)")
+                Text("•")
+                Text("Build \(Bundle.main.appBuild)")
+            }
+            .monospaced()
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .padding()
     }
@@ -186,7 +202,7 @@ struct HeaderActions: View {
         .padding()
         .sheet(isPresented: self.$showSettings) {
             Settings()
-                .presentationDetents([.large])
+                .presentationDetents([.medium])
         }
         .actionSheet(isPresented: self.$showResetAlert) {
             ActionSheet(
