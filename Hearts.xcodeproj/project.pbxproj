@@ -10,6 +10,7 @@
 		C00B3E242CB2E7A700CCE028 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = C00B3E232CB2E7A700CCE028 /* FirebaseAnalyticsWithoutAdIdSupport */; };
 		C00B3E262CB2E85900CCE028 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C00B3E252CB2E85900CCE028 /* GoogleService-Info.plist */; };
 		C00B3E292CB3077B00CCE028 /* Bundle+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00B3E282CB3077600CCE028 /* Bundle+Extension.swift */; };
+		C00B3E2C2CB393A700CCE028 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C00B3E2B2CB393A700CCE028 /* FirebaseCrashlytics */; };
 		C025D6152CAE3F2F007C0362 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025D6142CAE3F2F007C0362 /* Utils.swift */; };
 		C0300E052CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0300E042CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift */; };
 		C062DDD22C993C5B005D613F /* HeartsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C062DDD12C993C5B005D613F /* HeartsApp.swift */; };
@@ -37,18 +38,27 @@
 			buildActionMask = 2147483647;
 			files = (
 				C00B3E242CB2E7A700CCE028 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				C00B3E2C2CB393A700CCE028 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C00B3E2A2CB393A700CCE028 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C062DDC52C993C5A005D613F = {
 			isa = PBXGroup;
 			children = (
 				C062DDD02C993C5B005D613F /* Hearts */,
 				C062DDCF2C993C5B005D613F /* Products */,
 				C0300E032CA917F5007FF6AA /* README.md */,
+				C00B3E2A2CB393A700CCE028 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -93,6 +103,7 @@
 				C062DDCA2C993C5A005D613F /* Sources */,
 				C062DDCB2C993C5A005D613F /* Frameworks */,
 				C062DDCC2C993C5A005D613F /* Resources */,
+				C00B3E2D2CB3943900CCE028 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -151,6 +162,32 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C00B3E2D2CB3943900CCE028 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 12;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C062DDCA2C993C5A005D613F /* Sources */ = {
@@ -293,7 +330,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Hearts/Preview Content\"";
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
 				ENABLE_PREVIEWS = YES;
@@ -327,7 +365,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Hearts/Preview Content\"";
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
 				ENABLE_PREVIEWS = YES;
@@ -394,6 +433,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C00B3E222CB2E7A700CCE028 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsWithoutAdIdSupport;
+		};
+		C00B3E2B2CB393A700CCE028 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C00B3E222CB2E7A700CCE028 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
