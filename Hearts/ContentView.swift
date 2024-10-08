@@ -141,6 +141,8 @@ struct Settings: View {
                             ? "The shooter scores 0 points and each opponent scores 26 points"
                             : "The shooter scores -26 points"
                     )
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: self.game.moonRules)
                 }
 
                 Section {
