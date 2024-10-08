@@ -336,6 +336,7 @@
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hearts/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Hearts;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -371,6 +372,7 @@
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hearts/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Hearts;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
