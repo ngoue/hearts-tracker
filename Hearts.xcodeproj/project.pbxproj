@@ -103,7 +103,7 @@
 				C062DDCA2C993C5A005D613F /* Sources */,
 				C062DDCB2C993C5A005D613F /* Frameworks */,
 				C062DDCC2C993C5A005D613F /* Resources */,
-				C00B3E2D2CB3943900CCE028 /* ShellScript */,
+				C07606EB2CB59F6C00191C06 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -164,10 +164,10 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		C00B3E2D2CB3943900CCE028 /* ShellScript */ = {
+		C07606EB2CB59F6C00191C06 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
-			buildActionMask = 12;
+			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
