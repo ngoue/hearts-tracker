@@ -11,13 +11,24 @@ import SwiftUI
 @Observable
 class Player: Identifiable {
     let id = UUID()
-    var name: String = ""
     var score: Int = 0
+    var playerIndex: Int
+    var name: String {
+        didSet {
+            savePlayerName(playerIndex: self.playerIndex, name: self.name)
+        }
+    }
+
+    init(playerIndex: Int) {
+        self.playerIndex = playerIndex
+        self.name = loadPlayerName(playerIndex: playerIndex)
+    }
 }
 
 class GameModel: ObservableObject {
     // Persisted settings/state
     @AppStorage(MoonRuleKey) var moonRules: MoonRules = .Old
+    @AppStorage(SavePlayerNamesKey) var savePlayerNames: Bool = true
     @AppStorage(SelectedAccentColorKey) var selectedAccentColor: AccentColor = .Red
 
     // Ephemeral settings/state
@@ -33,10 +44,10 @@ class GameModel: ObservableObject {
     }
 
     let players = [
-        Player(),
-        Player(),
-        Player(),
-        Player(),
+        Player(playerIndex: 1),
+        Player(playerIndex: 2),
+        Player(playerIndex: 3),
+        Player(playerIndex: 4),
     ]
 
     func shootTheMoon(player: Player) {
@@ -141,8 +152,12 @@ struct Settings: View {
                             ? "The shooter scores 0 points and each opponent scores 26 points"
                             : "The shooter scores -26 points"
                     )
-                    .transition(.opacity)
-                    .animation(.easeInOut, value: self.game.moonRules)
+                }
+
+                Section {
+                    Toggle("Save Player Names", isOn: self.$game.savePlayerNames)
+                } footer: {
+                    Text(self.game.savePlayerNames ? "Player names save when you close the app" : "Player names reset when you close the app")
                 }
 
                 Section {

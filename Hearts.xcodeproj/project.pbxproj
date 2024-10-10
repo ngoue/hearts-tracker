@@ -73,11 +73,11 @@
 		C062DDD02C993C5B005D613F /* Hearts */ = {
 			isa = PBXGroup;
 			children = (
+				C062DDD12C993C5B005D613F /* HeartsApp.swift */,
+				C062DDD32C993C5B005D613F /* ContentView.swift */,
 				C025D6142CAE3F2F007C0362 /* Utils.swift */,
 				C00B3E282CB3077600CCE028 /* Bundle+Extension.swift */,
 				C0300E042CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift */,
-				C062DDD12C993C5B005D613F /* HeartsApp.swift */,
-				C062DDD32C993C5B005D613F /* ContentView.swift */,
 				C062DDD52C993C5C005D613F /* Assets.xcassets */,
 				C00B3E252CB2E85900CCE028 /* GoogleService-Info.plist */,
 				C062DDD72C993C5C005D613F /* Preview Content */,

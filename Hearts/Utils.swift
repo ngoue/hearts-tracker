@@ -8,8 +8,25 @@
 import SwiftUI
 
 // UserDefaults storage keys
+let InitialSetupKey = "InitialSetup"
 let MoonRuleKey = "MoonRules"
+let SavePlayerNamesKey = "SavePlayerNames"
 let SelectedAccentColorKey = "SelectedAccentColor"
+
+func savePlayerName(playerIndex: Int, name: String) {
+    UserDefaults.standard.set(name, forKey: "PlayerName\(playerIndex)")
+}
+
+func loadPlayerName(playerIndex: Int) -> String {
+    let savePlayerNames = UserDefaults.standard.bool(forKey: SavePlayerNamesKey)
+
+    if !savePlayerNames {
+        return ""
+    }
+
+    let savedName = UserDefaults.standard.string(forKey: "PlayerName\(playerIndex)")
+    return savedName ?? ""
+}
 
 // Settings enums
 enum MoonRules: String, CaseIterable, Identifiable {
