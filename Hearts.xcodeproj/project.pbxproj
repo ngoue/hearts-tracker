@@ -13,6 +13,7 @@
 		C00B3E2C2CB393A700CCE028 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C00B3E2B2CB393A700CCE028 /* FirebaseCrashlytics */; };
 		C01C56A32CC08C3100D18775 /* TinyStorage in Frameworks */ = {isa = PBXBuildFile; productRef = C01C56A22CC08C3100D18775 /* TinyStorage */; settings = {ATTRIBUTES = (Required, ); }; };
 		C01C56A52CC08C4900D18775 /* TinyStorage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01C56A42CC08C4300D18775 /* TinyStorage+Extension.swift */; };
+		C01C56A92CC0E03700D18775 /* TinyStorage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = C01C56A22CC08C3100D18775 /* TinyStorage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		C025D6152CAE3F2F007C0362 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025D6142CAE3F2F007C0362 /* Utils.swift */; };
 		C0300E052CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0300E042CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift */; };
 		C062DDD22C993C5B005D613F /* HeartsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C062DDD12C993C5B005D613F /* HeartsApp.swift */; };
@@ -20,6 +21,20 @@
 		C062DDD62C993C5C005D613F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C062DDD52C993C5C005D613F /* Assets.xcassets */; };
 		C062DDD92C993C5C005D613F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C062DDD82C993C5C005D613F /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C01C56AA2CC0E03700D18775 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C01C56A92CC0E03700D18775 /* TinyStorage in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C00B3E252CB2E85900CCE028 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -106,6 +121,7 @@
 			buildConfigurationList = C062DDDC2C993C5C005D613F /* Build configuration list for PBXNativeTarget "Hearts" */;
 			buildPhases = (
 				C062DDCA2C993C5A005D613F /* Sources */,
+				C01C56AA2CC0E03700D18775 /* Embed Frameworks */,
 				C062DDCB2C993C5A005D613F /* Frameworks */,
 				C062DDCC2C993C5A005D613F /* Resources */,
 				C07606EB2CB59F6C00191C06 /* ShellScript */,
@@ -337,7 +353,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Hearts/Preview Content\"";
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
@@ -373,7 +389,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Hearts/Preview Content\"";
 				DEVELOPMENT_TEAM = T5M8JM6M6Q;
