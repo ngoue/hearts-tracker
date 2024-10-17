@@ -1,5 +1,5 @@
 {
-  "originHash" : "a1569f9895aa2be8e24832f98525d5da4eb90b5d158a82691c15b47eb72a13d7",
+  "originHash" : "4701cad8268e4f5359a542e77a05e3119d6c4644fe5ee505705f671fe7b3696c",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "ebc7251dd5b37f627c93698e4374084d98409633",
         "version" : "1.28.2"
+      }
+    },
+    {
+      "identity" : "tinystorage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/christianselig/TinyStorage.git",
+      "state" : {
+        "revision" : "bc86fe89573de8a7f975496af239cdfb636513d4",
+        "version" : "1.0.16"
       }
     }
   ],

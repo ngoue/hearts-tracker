@@ -7,6 +7,7 @@
 
 import FirebaseAnalytics
 import SwiftUI
+import TinyStorage
 
 @Observable
 class Player: Identifiable {
@@ -21,15 +22,22 @@ class Player: Identifiable {
 
     init(playerIndex: Int) {
         self.playerIndex = playerIndex
-        self.name = loadPlayerName(playerIndex: playerIndex)
+        if let name = loadPlayerName(playerIndex: playerIndex) {
+            self.name = name
+        } else {
+            self.name = ""
+        }
     }
 }
 
 class GameModel: ObservableObject {
     // Persisted settings/state
-    @AppStorage(MoonRuleKey) var moonRules: MoonRules = .Old
-    @AppStorage(SavePlayerNamesKey) var savePlayerNames: Bool = true
-    @AppStorage(SelectedAccentColorKey) var selectedAccentColor: AccentColor = .Red
+    @TinyStorageItem(AppStorageKeys.moonRules, storage: .appGroup)
+    var moonRules: MoonRules = .old
+    @TinyStorageItem(AppStorageKeys.savePlayerNames, storage: .appGroup)
+    var savePlayerNames: Bool = true
+    @TinyStorageItem(AppStorageKeys.selectedAccentColor, storage: .appGroup)
+    var selectedAccentColor: AccentColor = .red
 
     // Ephemeral settings/state
     @Published var showSettings = false
@@ -51,7 +59,7 @@ class GameModel: ObservableObject {
     ]
 
     func shootTheMoon(player: Player) {
-        if self.moonRules == .Old {
+        if self.moonRules == .old {
             self.players.forEach { otherPlayer in
                 if player.id != otherPlayer.id {
                     otherPlayer.score += 26
@@ -148,7 +156,7 @@ struct Settings: View {
                     }
                 } footer: {
                     Text(
-                        self.game.moonRules == .Old
+                        self.game.moonRules == .old
                             ? "The shooter scores 0 points and each opponent scores 26 points"
                             : "The shooter scores -26 points"
                     )

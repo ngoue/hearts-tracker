@@ -6,50 +6,50 @@
 //
 
 import SwiftUI
+import TinyStorage
 
-// UserDefaults storage keys
-let InitialSetupKey = "InitialSetup"
-let MoonRuleKey = "MoonRules"
-let SavePlayerNamesKey = "SavePlayerNames"
-let SelectedAccentColorKey = "SelectedAccentColor"
+let StorageName = "tiny-storage-general-prefs"
+
+enum AppStorageKeys: String, TinyStorageKey {
+    case initialized
+    case moonRules
+    case savePlayerNames
+    case selectedAccentColor
+}
 
 func savePlayerName(playerIndex: Int, name: String) {
-    UserDefaults.standard.set(name, forKey: "PlayerName\(playerIndex)")
+    TinyStorage.appGroup.store(name, forKey: "PlayerName\(playerIndex)")
 }
 
-func loadPlayerName(playerIndex: Int) -> String {
-    let savePlayerNames = UserDefaults.standard.bool(forKey: SavePlayerNamesKey)
-
-    if !savePlayerNames {
-        return ""
+func loadPlayerName(playerIndex: Int) -> String? {
+    if TinyStorage.appGroup.retrieve(type: Bool.self, forKey: AppStorageKeys.savePlayerNames) == true {
+        return TinyStorage.appGroup.retrieve(type: String.self, forKey: "PlayerName\(playerIndex)")
     }
 
-    let savedName = UserDefaults.standard.string(forKey: "PlayerName\(playerIndex)")
-    return savedName ?? ""
+    return nil
 }
 
-// Settings enums
-enum MoonRules: String, CaseIterable, Identifiable {
-    case Old
-    case New
+enum MoonRules: String, CaseIterable, Identifiable, Codable {
+    case old
+    case new
 
     var id: Self { self }
 }
 
-enum AccentColor: String, CaseIterable, Identifiable {
-    case Red
-    case Blue
-    case Green
+enum AccentColor: String, CaseIterable, Identifiable, Codable {
+    case red
+    case blue
+    case green
 
     var id: Self { self }
 
     static func colorForAccent(accent: AccentColor) -> Color {
         switch accent {
-        case .Red:
+        case .red:
             return .red
-        case .Blue:
+        case .blue:
             return .blue
-        case .Green:
+        case .green:
             return .green
         }
     }

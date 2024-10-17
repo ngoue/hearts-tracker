@@ -7,6 +7,7 @@
 
 import FirebaseCore
 import SwiftUI
+import TinyStorage
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -15,12 +16,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // On first startup, set default settings. This is really just for
         // boolean settings that default to `true`, but figured it doesn't
         // hurt to insert the initial value for all persisted settings.
-        if !UserDefaults.standard.bool(forKey: InitialSetupKey) {
-            UserDefaults.standard.set(MoonRules.Old.rawValue, forKey: MoonRuleKey)
-            UserDefaults.standard.set(true, forKey: SavePlayerNamesKey)
-            UserDefaults.standard.set(AccentColor.Red.rawValue, forKey: SelectedAccentColorKey)
-            // Mark intial setup complete
-            UserDefaults.standard.set(true, forKey: InitialSetupKey)
+        if !TinyStorage.appGroup.bool(forKey: AppStorageKeys.initialized) {
+            TinyStorage.appGroup.bulkStore(items: [
+                AppStorageKeys.initialized: true,
+                AppStorageKeys.savePlayerNames: true,
+                AppStorageKeys.moonRules: MoonRules.old,
+                AppStorageKeys.selectedAccentColor: AccentColor.red,
+            ], skipKeyIfAlreadyPresent: true)
         }
 
         return true
