@@ -19,7 +19,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         if !TinyStorage.appGroup.bool(forKey: AppStorageKeys.initialized) {
             TinyStorage.appGroup.bulkStore(items: [
                 AppStorageKeys.initialized: true,
-                AppStorageKeys.savePlayerNames: true,
                 AppStorageKeys.moonRules: MoonRules.old,
                 AppStorageKeys.selectedAccentColor: AccentColor.red,
             ], skipKeyIfAlreadyPresent: true)

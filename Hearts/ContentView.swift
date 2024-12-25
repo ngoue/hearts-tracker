@@ -12,7 +12,6 @@ import TinyStorage
 @Observable
 class Player: Identifiable {
     let id = UUID()
-    var score: Int = 0
     var playerIndex: Int
     var name: String {
         didSet {
@@ -20,13 +19,40 @@ class Player: Identifiable {
         }
     }
 
+    var scores: [Int] {
+        didSet {
+            savePlayerScores(playerIndex: self.playerIndex, scores: self.scores)
+        }
+    }
+
+    var score: Int {
+        return self.scores.reduce(0, +)
+    }
+
     init(playerIndex: Int) {
         self.playerIndex = playerIndex
+        if let scores = loadPlayerScores(playerIndex: playerIndex) {
+            self.scores = scores
+        } else {
+            self.scores = [0]
+        }
         if let name = loadPlayerName(playerIndex: playerIndex) {
             self.name = name
         } else {
             self.name = ""
         }
+    }
+
+    func adjustPoints(_ points: Int, for round: Int) {
+        if self.scores.count < round + 1 {
+            self.scores.append(points)
+        } else {
+            self.scores[round] += points
+        }
+    }
+
+    func reset() {
+        self.scores = [0]
     }
 }
 
@@ -34,22 +60,21 @@ class GameModel: ObservableObject {
     // Persisted settings/state
     @TinyStorageItem(AppStorageKeys.moonRules, storage: .appGroup)
     var moonRules: MoonRules = .old
-    @TinyStorageItem(AppStorageKeys.savePlayerNames, storage: .appGroup)
-    var savePlayerNames: Bool = true
     @TinyStorageItem(AppStorageKeys.selectedAccentColor, storage: .appGroup)
     var selectedAccentColor: AccentColor = .red
-
-    // Ephemeral settings/state
-    @Published var showSettings = false
-    @Published var showResetAlert = false
-    @Published var isEditing = false
-    @Published var round = 0 {
+    @TinyStorageItem(AppStorageKeys.round, storage: .appGroup)
+    var round = 0 {
         didSet {
             if self.round < 0 {
                 self.round = 0
             }
         }
     }
+
+    // Ephemeral settings/state
+    @Published var showSettings = false
+    @Published var showResetAlert = false
+    @Published var isEditing = false
 
     let players = [
         Player(playerIndex: 1),
@@ -58,15 +83,31 @@ class GameModel: ObservableObject {
         Player(playerIndex: 4),
     ]
 
+    var totalScore: Int {
+        return self.players
+            .map { $0.scores[self.round] }
+            .reduce(0, +)
+    }
+
+    var pointsRemaining: Int {
+        return max(26 - self.totalScore, 0)
+    }
+
+    func canShootTheMoon() -> Bool {
+        return self.totalScore == 0
+    }
+
     func shootTheMoon(player: Player) {
-        if self.moonRules == .old {
-            self.players.forEach { otherPlayer in
-                if player.id != otherPlayer.id {
-                    otherPlayer.score += 26
+        if self.canShootTheMoon() {
+            if self.moonRules == .old {
+                self.players.forEach { otherPlayer in
+                    if player.id != otherPlayer.id {
+                        otherPlayer.adjustPoints(26, for: self.round)
+                    }
                 }
+            } else {
+                player.adjustPoints(-26, for: self.round)
             }
-        } else {
-            player.score -= 26
         }
     }
 
@@ -97,9 +138,21 @@ class GameModel: ObservableObject {
         return "Round \(self.round + 1)"
     }
 
+    func isRoundComplete() -> Bool {
+        return self.totalScore > 0 && self.totalScore % 26 == 0
+    }
+
     func nextRound() {
-        withAnimation {
-            self.round += 1
+        if self.isRoundComplete() {
+            withAnimation {
+                for player in self.players {
+                    // make sure there is a round score initialized before moving on
+                    if player.scores.count <= self.round + 1 {
+                        player.adjustPoints(0, for: self.round + 1)
+                    }
+                }
+                self.round += 1
+            }
         }
     }
 
@@ -117,7 +170,7 @@ class GameModel: ObservableObject {
         Analytics.logEvent(AnalyticsEventReset, parameters: nil)
         self.round = 0
         self.players.forEach { player in
-            player.score = 0
+            player.reset()
         }
     }
 }
@@ -160,12 +213,6 @@ struct Settings: View {
                             ? "The shooter scores 0 points and each opponent scores 26 points"
                             : "The shooter scores -26 points"
                     )
-                }
-
-                Section {
-                    Toggle("Save Player Names", isOn: self.$game.savePlayerNames)
-                } footer: {
-                    Text(self.game.savePlayerNames ? "Player names save when you close the app" : "Player names reset when you close the app")
                 }
 
                 Section {
@@ -342,7 +389,7 @@ struct PlayerView: View {
             VStack(spacing: self.buttonSpacing) {
                 HStack(spacing: self.buttonSpacing) {
                     Button(action: {
-                        self.player.score += self.game.isEditing ? -1 : 1
+                        self.player.adjustPoints(self.game.isEditing ? -1 : 1, for: self.game.round)
                     }) {
                         Text(self.game.isEditing ? "-1" : "+1")
                             .font(.headline)
@@ -350,9 +397,10 @@ struct PlayerView: View {
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
+                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 1 : self.game.pointsRemaining < 1)
 
                     Button(action: {
-                        self.player.score += self.game.isEditing ? -5 : 5
+                        self.player.adjustPoints(self.game.isEditing ? -5 : 5, for: self.game.round)
                     }) {
                         Text(self.game.isEditing ? "-5" : "+5")
                             .font(.headline)
@@ -360,10 +408,11 @@ struct PlayerView: View {
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
+                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 5 : self.game.pointsRemaining < 5)
                 }
                 HStack(spacing: self.buttonSpacing) {
                     Button(action: {
-                        self.player.score += self.game.isEditing ? -13 : 13
+                        self.player.adjustPoints(self.game.isEditing ? -13 : 13, for: self.game.round)
                     }) {
                         Text(self.game.isEditing ? "-13" : "+13")
                             .font(.headline)
@@ -371,6 +420,7 @@ struct PlayerView: View {
                             .foregroundColor(Color.white)
                             .background(Circle().fill(Color.accentColor))
                     }
+                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 13 : self.game.pointsRemaining < 13)
 
                     Button(action: {
                         self.game.shootTheMoon(player: self.player)
@@ -383,7 +433,7 @@ struct PlayerView: View {
                     }
                     .symbolEffect(.bounce, value: self.moonBounce)
                     .labelStyle(.iconOnly)
-                    .disabled(self.game.isEditing)
+                    .disabled(self.game.isEditing || !self.game.canShootTheMoon())
                 }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -436,7 +486,7 @@ struct FooterActions: View {
                     .labelStyle(.iconOnly)
                     .symbolRenderingMode(.hierarchical)
             }
-            .disabled(self.game.isEditing)
+            .disabled(self.game.isEditing || !self.game.isRoundComplete())
         }
         .padding()
     }
@@ -464,6 +514,7 @@ struct ContentView: View {
                 FooterActions()
             }
         }
+        .background(Color(UIColor.secondarySystemBackground))
         .environmentObject(self.game)
         .accentColor(self.game.tintColor())
     }

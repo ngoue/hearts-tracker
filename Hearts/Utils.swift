@@ -13,8 +13,8 @@ let StorageName = "tiny-storage-general-prefs"
 enum AppStorageKeys: String, TinyStorageKey {
     case initialized
     case moonRules
-    case savePlayerNames
     case selectedAccentColor
+    case round
 }
 
 func savePlayerName(playerIndex: Int, name: String) {
@@ -22,11 +22,15 @@ func savePlayerName(playerIndex: Int, name: String) {
 }
 
 func loadPlayerName(playerIndex: Int) -> String? {
-    if TinyStorage.appGroup.retrieve(type: Bool.self, forKey: AppStorageKeys.savePlayerNames) == true {
-        return TinyStorage.appGroup.retrieve(type: String.self, forKey: "PlayerName\(playerIndex)")
-    }
+    return TinyStorage.appGroup.retrieve(type: String.self, forKey: "PlayerName\(playerIndex)")
+}
 
-    return nil
+func savePlayerScores(playerIndex: Int, scores: [Int]) {
+    TinyStorage.appGroup.store(scores, forKey: "PlayerScores\(playerIndex)")
+}
+
+func loadPlayerScores(playerIndex: Int) -> [Int]? {
+    return TinyStorage.appGroup.retrieve(type: [Int].self, forKey: "PlayerScores\(playerIndex)")
 }
 
 enum MoonRules: String, CaseIterable, Identifiable, Codable {
