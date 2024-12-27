@@ -173,6 +173,19 @@ class GameModel: ObservableObject {
             player.reset()
         }
     }
+
+    func resetGameAndPlayers() {
+        Analytics.logEvent(AnalyticsEventResetGameAndPlayers, parameters: nil)
+        self.round = 0
+        self.players.forEach { player in
+            player.reset()
+        }
+
+        for player in self.players {
+            player.name = ""
+            TinyStorage.appGroup.remove(key: "PlayerName\(player.playerIndex)")
+        }
+    }
 }
 
 struct Settings: View {
@@ -318,7 +331,11 @@ struct HeaderActions: View {
             ActionSheet(
                 title: Text("Reset Game"),
                 message: Text("Are you sure you want to reset the game?"),
-                buttons: [.destructive(Text("Reset"), action: self.game.reset), .cancel()]
+                buttons: [
+                    .destructive(Text("Reset"), action: self.game.reset),
+                    .destructive(Text("Reset Players"), action: self.game.resetGameAndPlayers),
+                    .cancel(),
+                ]
             )
         }
     }
