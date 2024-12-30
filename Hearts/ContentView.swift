@@ -139,7 +139,10 @@ class GameModel: ObservableObject {
     }
 
     func isRoundComplete() -> Bool {
-        return self.totalScore > 0 && self.totalScore % 26 == 0
+        // 26 -> all points awarded
+        // -26 -> new rules shoot the moon
+        // 78 -> old rules shoo the moon
+        return self.totalScore == 26 || self.totalScore == -26 || self.totalScore == 78
     }
 
     func nextRound() {
