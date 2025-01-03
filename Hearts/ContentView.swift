@@ -51,6 +51,10 @@ class Player: Identifiable {
         }
     }
 
+    func resetRound(_ round: Int) {
+        self.scores[round] = 0
+    }
+
     func reset() {
         self.scores = [0]
     }
@@ -74,9 +78,8 @@ class GameModel: ObservableObject {
     // Ephemeral settings/state
     @Published var showSettings = false
     @Published var showResetAlert = false
-    @Published var isEditing = false
 
-    let players = [
+    var players = [
         Player(playerIndex: 1),
         Player(playerIndex: 2),
         Player(playerIndex: 3),
@@ -93,21 +96,19 @@ class GameModel: ObservableObject {
         return max(26 - abs(self.totalScore), 0)
     }
 
-    func canShootTheMoon() -> Bool {
-        return self.totalScore == 0
-    }
-
     func shootTheMoon(player: Player) {
-        if self.canShootTheMoon() {
-            if self.moonRules == .old {
-                self.players.forEach { otherPlayer in
-                    if player.id != otherPlayer.id {
-                        otherPlayer.adjustPoints(26, for: self.round)
-                    }
+        if self.totalScore != 0 {
+            return
+        }
+
+        if self.moonRules == .old {
+            self.players.forEach { otherPlayer in
+                if player.id != otherPlayer.id {
+                    otherPlayer.adjustPoints(26, for: self.round)
                 }
-            } else {
-                player.adjustPoints(-26, for: self.round)
             }
+        } else {
+            player.adjustPoints(-26, for: self.round)
         }
     }
 
@@ -176,23 +177,12 @@ class GameModel: ObservableObject {
             player.reset()
         }
     }
-
-    func resetGameAndPlayers() {
-        Analytics.logEvent(AnalyticsEventResetGameAndPlayers, parameters: nil)
-        self.round = 0
-        self.players.forEach { player in
-            player.reset()
-        }
-
-        for player in self.players {
-            player.name = ""
-            TinyStorage.appGroup.remove(key: "PlayerName\(player.playerIndex)")
-        }
-    }
 }
 
 struct Settings: View {
     @EnvironmentObject var game: GameModel
+    @State var playerNames: [String] = ["", "", "", ""]
+    @FocusState var focusedField: Int?
     let availableColors: [Color] = [.red, .blue, .green]
 
     func sendFeedback() {
@@ -206,9 +196,39 @@ struct Settings: View {
         }
     }
 
+    func nextPlayerNameField(current: Int) {
+        if current < self.game.players.count {
+            self.focusedField = current + 1
+        } else {
+            self.focusedField = nil
+        }
+    }
+
     var body: some View {
         NavigationView {
             Form {
+                Section {
+                    ForEach(self.playerNames.indices, id: \.self) { index in
+                        TextField("Player \(index + 1)", text: self.$playerNames[index])
+                            .focused(self.$focusedField, equals: index)
+                            .submitLabel(index < self.playerNames.count - 1 ? .next : .done)
+                            .onSubmit {
+                                self.nextPlayerNameField(current: index)
+                            }
+                    }
+
+                    Button(action: {
+                        for player in self.game.players {
+                            player.name = ""
+                            TinyStorage.appGroup.remove(key: "PlayerName\(player.playerIndex)")
+                        }
+                        self.playerNames = ["", "", "", ""]
+                    }) {
+                        Text("Reset Names")
+                    }
+                    .foregroundColor(.red)
+                }
+
                 Section {
                     Picker(selection: self.$game.moonRules) {
                         ForEach(MoonRules.allCases) { rule in
@@ -275,6 +295,14 @@ struct Settings: View {
                 }
             }
             .navigationTitle("Settings")
+            .onAppear {
+                self.playerNames = self.game.players.map(\.name)
+            }
+            .onDisappear {
+                for (index, name) in self.playerNames.enumerated() {
+                    self.game.players[index].name = name
+                }
+            }
         }
     }
 }
@@ -297,23 +325,6 @@ struct HeaderActions: View {
                     .labelStyle(.iconOnly)
                     .symbolRenderingMode(.hierarchical)
             }
-            .disabled(self.game.isEditing)
-            Button(action: {
-                if self.game.isEditing {
-                    Analytics.logEvent(AnalyticsEventEditDoneButtonTapped, parameters: nil)
-                } else {
-                    Analytics.logEvent(AnalyticsEventEditButtonTapped, parameters: nil)
-                }
-                withAnimation {
-                    self.game.isEditing.toggle()
-                }
-            }) {
-                Label(self.game.isEditing ? "Done" : "Edit", systemImage: self.game.isEditing ? "checkmark.circle.fill" : "pencil.circle.fill")
-                    .font(.largeTitle)
-                    .labelStyle(.iconOnly)
-                    .symbolRenderingMode(.hierarchical)
-            }
-            .contentTransition(.symbolEffect(.replace))
             Button(action: {
                 Analytics.logEvent(AnalyticsEventResetButtonTapped, parameters: nil)
                 self.game.showResetAlert = true
@@ -323,7 +334,6 @@ struct HeaderActions: View {
                     .labelStyle(.iconOnly)
                     .symbolRenderingMode(.hierarchical)
             }
-            .disabled(self.game.isEditing)
         }
         .padding()
         .sheet(isPresented: self.$game.showSettings) {
@@ -335,8 +345,7 @@ struct HeaderActions: View {
                 title: Text("Reset Game"),
                 message: Text("Are you sure you want to reset the game?"),
                 buttons: [
-                    .destructive(Text("Reset game"), action: self.game.reset),
-                    .destructive(Text("Reset game and players"), action: self.game.resetGameAndPlayers),
+                    .destructive(Text("Reset"), action: self.game.reset),
                     .cancel(),
                 ]
             )
@@ -395,9 +404,9 @@ struct PlayerView: View {
     func needsBottomBorder() -> Bool {
         if self.playerNumber() == 4 {
             return false
-        } else if !self.game.isEditing && self.isDealer() {
+        } else if self.isDealer() {
             return false
-        } else if !self.game.isEditing && self.playerNumber() == self.game.roundIndex() {
+        } else if self.playerNumber() == self.game.roundIndex() {
             return false
         }
         return true
@@ -407,19 +416,11 @@ struct PlayerView: View {
         HStack(alignment: .center, spacing: self.spacing) {
             VStack {
                 HStack {
-                    if self.game.isEditing {
-                        TextField("Player \(self.playerNumber())", text: self.$player.name)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.headline)
-                            .frame(maxWidth: 300, alignment: .leading)
-
-                    } else {
-                        Text(self.playerName())
-                            .font(.headline)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    Text(self.playerName())
+                        .font(.headline)
+                        .lineLimit(1)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 HStack {
@@ -437,59 +438,63 @@ struct PlayerView: View {
                     VStack(spacing: self.buttonSpacing) {
                         HStack(spacing: self.buttonSpacing) {
                             Button(action: {
-                                self.player.adjustPoints(self.game.isEditing ? -1 : 1, for: self.game.round)
+                                self.player.adjustPoints(1, for: self.game.round)
                             }) {
-                                Text(self.game.isEditing ? "-1" : "+1")
+                                Text("+1")
                                     .font(.headline)
                                     .frame(width: self.buttonSize, height: self.buttonSize)
                                     .foregroundColor(Color.white)
                                     .background(Circle().fill(Color.accentColor))
                             }
-                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 1 : self.player.roundScore(self.game.round) >= 25 || self.game.pointsRemaining < 1)
+                            .disabled(self.player.roundScore(self.game.round) >= 25 || self.game.pointsRemaining < 1)
 
                             Button(action: {
-                                self.player.adjustPoints(self.game.isEditing ? -5 : 5, for: self.game.round)
+                                self.player.adjustPoints(5, for: self.game.round)
                             }) {
-                                Text(self.game.isEditing ? "-5" : "+5")
+                                Text("+5")
                                     .font(.headline)
                                     .frame(width: self.buttonSize, height: self.buttonSize)
                                     .foregroundColor(Color.white)
                                     .background(Circle().fill(Color.accentColor))
                             }
-                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 5 : self.player.roundScore(self.game.round) >= 21 || self.game.pointsRemaining < 5)
+                            .disabled(self.player.roundScore(self.game.round) >= 21 || self.game.pointsRemaining < 5)
 
                             Button(action: {
-                                self.player.adjustPoints(self.game.isEditing ? -13 : 13, for: self.game.round)
+                                self.player.adjustPoints(13, for: self.game.round)
                             }) {
-                                Text(self.game.isEditing ? "-13" : "+13")
+                                Text("+13")
                                     .font(.headline)
                                     .frame(width: self.buttonSize, height: self.buttonSize)
                                     .foregroundColor(Color.white)
                                     .background(Circle().fill(Color.accentColor))
                             }
-                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 13 : self.player.roundScore(self.game.round) >= 13 || self.game.pointsRemaining < 13)
+                            .disabled(self.player.roundScore(self.game.round) >= 13 || self.game.pointsRemaining < 13)
 
                             Button(action: {
-                                if self.game.isEditing || self.game.totalScore != 0 {
-                                    // reset score to 0 by adjusting by the inverse of the current score
-                                    self.player.adjustPoints(-self.player.roundScore(self.game.round), for: self.game.round)
-                                } else {
+                                if self.game.totalScore == 0 {
                                     // shoot the moon
                                     self.game.shootTheMoon(player: self.player)
+                                } else {
+                                    // reset score to 0 - additionally, reset all players if this was a moon shot
+                                    let roundScore = self.player.roundScore(self.game.round)
+                                    if roundScore == 26 {
+                                        for player in self.game.players {
+                                            player.resetRound(self.game.round)
+                                        }
+                                    } else {
+                                        self.player.resetRound(self.game.round)
+                                    }
                                 }
                                 self.moonBounce += 1
                             }) {
-                                Label(
-                                    (self.game.isEditing || self.game.totalScore != 0) ? "Reset round score" : "Shoot the moon",
-                                    systemImage: self.game.isEditing || self.game.totalScore != 0 ? "arrow.clockwise.circle.fill" : "moon.circle.fill"
-                                )
-                                .font(.system(size: self.buttonSize))
-                                .frame(width: self.buttonSize, height: self.buttonSize)
-                                .foregroundStyle(Color.white, Color.accentColor)
+                                Label(self.game.totalScore == 0 ? "Shoot the moon" : "Reset round score", systemImage: self.game.totalScore == 0 ? "moon.circle.fill" : "arrow.clockwise.circle.fill")
+                                    .font(.system(size: self.buttonSize))
+                                    .frame(width: self.buttonSize, height: self.buttonSize)
+                                    .foregroundStyle(Color.white, Color.accentColor)
                             }
                             .symbolEffect(.bounce, value: self.moonBounce)
                             .labelStyle(.iconOnly)
-                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) == 0 : self.game.canShootTheMoon() ? false : self.player.roundScore(self.game.round) == 0)
+                            .disabled(self.game.totalScore != 0 && self.player.roundScore(self.game.round) == 0)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -499,7 +504,7 @@ struct PlayerView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, self.spacing)
-        .background(!self.game.isEditing && self.isDealer() ? Color.accentColor.opacity(0.15) : .clear)
+        .background(self.isDealer() ? Color.accentColor.opacity(0.15) : .clear)
         .overlay(alignment: .bottom) {
             self.needsBottomBorder()
                 ? Rectangle()
@@ -524,7 +529,7 @@ struct FooterActions: View {
                     .labelStyle(.iconOnly)
                     .symbolRenderingMode(.hierarchical)
             }
-            .disabled(self.game.round == 0 || self.game.isEditing)
+            .disabled(self.game.round == 0)
 
             Spacer()
 
@@ -545,7 +550,7 @@ struct FooterActions: View {
                     .labelStyle(.iconOnly)
                     .symbolRenderingMode(.hierarchical)
             }
-            .disabled(self.game.isEditing || !self.game.isRoundComplete())
+            .disabled(!self.game.isRoundComplete())
         }
         .padding()
     }
