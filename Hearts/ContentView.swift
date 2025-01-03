@@ -25,10 +25,6 @@ class Player: Identifiable {
         }
     }
 
-    var score: Int {
-        return self.scores.reduce(0, +)
-    }
-
     init(playerIndex: Int) {
         self.playerIndex = playerIndex
         if let scores = loadPlayerScores(playerIndex: playerIndex) {
@@ -41,6 +37,10 @@ class Player: Identifiable {
         } else {
             self.name = ""
         }
+    }
+
+    func roundScore(_ round: Int) -> Int {
+        return round > self.scores.count ? 0 : self.scores[round]
     }
 
     func adjustPoints(_ points: Int, for round: Int) {
@@ -90,7 +90,7 @@ class GameModel: ObservableObject {
     }
 
     var pointsRemaining: Int {
-        return max(26 - self.totalScore, 0)
+        return max(26 - abs(self.totalScore), 0)
     }
 
     func canShootTheMoon() -> Bool {
@@ -335,8 +335,8 @@ struct HeaderActions: View {
                 title: Text("Reset Game"),
                 message: Text("Are you sure you want to reset the game?"),
                 buttons: [
-                    .destructive(Text("Reset"), action: self.game.reset),
-                    .destructive(Text("Reset Players"), action: self.game.resetGameAndPlayers),
+                    .destructive(Text("Reset game"), action: self.game.reset),
+                    .destructive(Text("Reset game and players"), action: self.game.resetGameAndPlayers),
                     .cancel(),
                 ]
             )
@@ -370,6 +370,20 @@ struct PlayerView: View {
         return self.player.name.isEmpty ? "Player \(self.playerNumber())" : self.player.name
     }
 
+    func roundScoreLabel() -> String {
+        let score = self.player.roundScore(self.game.round)
+        return score > 0 ? "+\(score)" : String(score)
+    }
+
+    func runningScoreLabel() -> String {
+        if self.game.round == 0 {
+            return "0"
+        } else {
+            let score = self.player.scores.prefix(self.game.round).reduce(0) { $0 + $1 }
+            return String(score)
+        }
+    }
+
     func playerNumber() -> Int {
         if let index = self.game.players.firstIndex(where: { $0.id == self.player.id }) {
             return index + 1
@@ -391,72 +405,97 @@ struct PlayerView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: self.spacing) {
-            if self.game.isEditing {
-                TextField("Player \(self.playerNumber())", text: self.$player.name)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                Text(self.playerName())
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(1)
-            }
-
-            Text("\(self.player.score)")
-                .font(.largeTitle)
-
-            VStack(spacing: self.buttonSpacing) {
-                HStack(spacing: self.buttonSpacing) {
-                    Button(action: {
-                        self.player.adjustPoints(self.game.isEditing ? -1 : 1, for: self.game.round)
-                    }) {
-                        Text(self.game.isEditing ? "-1" : "+1")
+            VStack {
+                HStack {
+                    if self.game.isEditing {
+                        TextField("Player \(self.playerNumber())", text: self.$player.name)
+                            .textFieldStyle(.roundedBorder)
                             .font(.headline)
-                            .frame(width: self.buttonSize, height: self.buttonSize)
-                            .foregroundColor(Color.white)
-                            .background(Circle().fill(Color.accentColor))
-                    }
-                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 1 : self.game.pointsRemaining < 1)
+                            .frame(maxWidth: 300, alignment: .leading)
 
-                    Button(action: {
-                        self.player.adjustPoints(self.game.isEditing ? -5 : 5, for: self.game.round)
-                    }) {
-                        Text(self.game.isEditing ? "-5" : "+5")
+                    } else {
+                        Text(self.playerName())
                             .font(.headline)
-                            .frame(width: self.buttonSize, height: self.buttonSize)
-                            .foregroundColor(Color.white)
-                            .background(Circle().fill(Color.accentColor))
+                            .lineLimit(1)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 5 : self.game.pointsRemaining < 5)
                 }
-                HStack(spacing: self.buttonSpacing) {
-                    Button(action: {
-                        self.player.adjustPoints(self.game.isEditing ? -13 : 13, for: self.game.round)
-                    }) {
-                        Text(self.game.isEditing ? "-13" : "+13")
-                            .font(.headline)
-                            .frame(width: self.buttonSize, height: self.buttonSize)
-                            .foregroundColor(Color.white)
-                            .background(Circle().fill(Color.accentColor))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Text(self.runningScoreLabel())
+                        .font(.largeTitle)
+                        .bold()
+                        .lineLimit(1)
+                    if self.player.roundScore(self.game.round) != 0 {
+                        Text(self.roundScoreLabel())
+                            .font(.title)
+                            .bold()
+                            .foregroundColor(self.game.tintColor())
+                            .lineLimit(1)
                     }
-                    .disabled(self.game.isEditing ? self.player.scores[self.game.round] < 13 : self.game.pointsRemaining < 13)
+                    VStack(spacing: self.buttonSpacing) {
+                        HStack(spacing: self.buttonSpacing) {
+                            Button(action: {
+                                self.player.adjustPoints(self.game.isEditing ? -1 : 1, for: self.game.round)
+                            }) {
+                                Text(self.game.isEditing ? "-1" : "+1")
+                                    .font(.headline)
+                                    .frame(width: self.buttonSize, height: self.buttonSize)
+                                    .foregroundColor(Color.white)
+                                    .background(Circle().fill(Color.accentColor))
+                            }
+                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 1 : self.player.roundScore(self.game.round) >= 25 || self.game.pointsRemaining < 1)
 
-                    Button(action: {
-                        self.game.shootTheMoon(player: self.player)
-                        self.moonBounce += 1
-                    }) {
-                        Label("Shoot the moon", systemImage: "moon.circle.fill")
-                            .font(.system(size: self.buttonSize))
-                            .frame(width: self.buttonSize, height: self.buttonSize)
-                            .foregroundStyle(Color.white, Color.accentColor)
+                            Button(action: {
+                                self.player.adjustPoints(self.game.isEditing ? -5 : 5, for: self.game.round)
+                            }) {
+                                Text(self.game.isEditing ? "-5" : "+5")
+                                    .font(.headline)
+                                    .frame(width: self.buttonSize, height: self.buttonSize)
+                                    .foregroundColor(Color.white)
+                                    .background(Circle().fill(Color.accentColor))
+                            }
+                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 5 : self.player.roundScore(self.game.round) >= 21 || self.game.pointsRemaining < 5)
+
+                            Button(action: {
+                                self.player.adjustPoints(self.game.isEditing ? -13 : 13, for: self.game.round)
+                            }) {
+                                Text(self.game.isEditing ? "-13" : "+13")
+                                    .font(.headline)
+                                    .frame(width: self.buttonSize, height: self.buttonSize)
+                                    .foregroundColor(Color.white)
+                                    .background(Circle().fill(Color.accentColor))
+                            }
+                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) < 13 : self.player.roundScore(self.game.round) >= 13 || self.game.pointsRemaining < 13)
+
+                            Button(action: {
+                                if self.game.isEditing || self.game.totalScore != 0 {
+                                    // reset score to 0 by adjusting by the inverse of the current score
+                                    self.player.adjustPoints(-self.player.roundScore(self.game.round), for: self.game.round)
+                                } else {
+                                    // shoot the moon
+                                    self.game.shootTheMoon(player: self.player)
+                                }
+                                self.moonBounce += 1
+                            }) {
+                                Label(
+                                    (self.game.isEditing || self.game.totalScore != 0) ? "Reset round score" : "Shoot the moon",
+                                    systemImage: self.game.isEditing || self.game.totalScore != 0 ? "arrow.clockwise.circle.fill" : "moon.circle.fill"
+                                )
+                                .font(.system(size: self.buttonSize))
+                                .frame(width: self.buttonSize, height: self.buttonSize)
+                                .foregroundStyle(Color.white, Color.accentColor)
+                            }
+                            .symbolEffect(.bounce, value: self.moonBounce)
+                            .labelStyle(.iconOnly)
+                            .disabled(self.game.isEditing ? self.player.roundScore(self.game.round) == 0 : self.game.canShootTheMoon() ? false : self.player.roundScore(self.game.round) == 0)
+                        }
                     }
-                    .symbolEffect(.bounce, value: self.moonBounce)
-                    .labelStyle(.iconOnly)
-                    .disabled(self.game.isEditing || !self.game.canShootTheMoon())
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal)
         .padding(.vertical, self.spacing)
