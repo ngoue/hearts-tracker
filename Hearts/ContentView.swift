@@ -25,6 +25,10 @@ class Player: Identifiable {
         }
     }
 
+    var totalScore: Int {
+        return self.scores.reduce(0, +)
+    }
+
     init(playerIndex: Int) {
         self.playerIndex = playerIndex
         if let scores = loadPlayerScores(playerIndex: playerIndex) {
@@ -78,6 +82,7 @@ class GameModel: ObservableObject {
     // Ephemeral settings/state
     @Published var showSettings = false
     @Published var showResetAlert = false
+    @Published var showGameOver = false
 
     var players = [
         Player(playerIndex: 1),
@@ -122,16 +127,16 @@ class GameModel: ObservableObject {
 
     func actionLabel() -> String {
         switch self.roundIndex() {
-            case 0:
-                return "Pass left"
-            case 1:
-                return "Pass right"
-            case 2:
-                return "Pass across"
-            case 3:
-                return "Hold"
-            default:
-                return "Dance"
+        case 0:
+            return "Pass left"
+        case 1:
+            return "Pass right"
+        case 2:
+            return "Pass across"
+        case 3:
+            return "Hold"
+        default:
+            return "Dance"
         }
     }
 
@@ -154,6 +159,11 @@ class GameModel: ObservableObject {
                     if player.scores.count <= self.round + 1 {
                         player.adjustPoints(0, for: self.round + 1)
                     }
+
+                    // end the game!
+                    if player.totalScore >= 100 {
+                        self.showGameOver = true
+                    }
                 }
                 self.round += 1
             }
@@ -170,8 +180,45 @@ class GameModel: ObservableObject {
         return self.round % 4
     }
 
+    func getPlayerRanks() -> [(Player, String, Int)] {
+        let sortedPlayers = self.players.sorted { $0.totalScore < $1.totalScore }
+        var ranks: [(Player, String, Int)] = []
+        var currentRank = 1
+        var lastScore = sortedPlayers.first?.totalScore ?? 0
+        var rankCount = 0
+
+        for player in sortedPlayers {
+            let score = player.totalScore
+
+            if score == lastScore {
+                rankCount += 1
+            } else {
+                currentRank += rankCount
+                rankCount = 1
+                lastScore = score
+            }
+
+            let rankString = self.getRankString(for: currentRank)
+            ranks.append((player, rankString, player.totalScore))
+        }
+
+        return ranks
+    }
+
+    func getRankString(for rank: Int) -> String {
+        switch rank {
+        case 1:
+            return "🥇"
+        case 2:
+            return "🥈"
+        case 3:
+            return "🥉"
+        default:
+            return "💩"
+        }
+    }
+
     func reset() {
-        Analytics.logEvent(AnalyticsEventReset, parameters: nil)
         self.round = 0
         self.players.forEach { player in
             player.reset()
@@ -218,6 +265,7 @@ struct Settings: View {
                     }
 
                     Button(action: {
+                        Analytics.logEvent(AnalyticsEventResetPlayerNames, parameters: nil)
                         for player in self.game.players {
                             player.name = ""
                             TinyStorage.appGroup.remove(key: "PlayerName\(player.playerIndex)")
@@ -307,6 +355,41 @@ struct Settings: View {
     }
 }
 
+struct GameOver: View {
+    @EnvironmentObject var game: GameModel
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    ForEach(self.game.getPlayerRanks(), id: \.0.id) { (player, rank, score) in
+                        LabeledContent("\(rank) \(player.name.isEmpty ? "Player \(player.playerIndex)" : player.name)", value: String(score))
+                    }
+                }
+
+                Section {
+                    Button(action: {
+                        Analytics.logEvent(AnalyticsEventKeepPlaying, parameters: nil)
+                        self.game.showGameOver.toggle()
+                    }) {
+                        Text("Keep Playing")
+                    }
+
+                    Button(action: {
+                        Analytics.logEvent(AnalyticsEventNewGame, parameters: nil)
+                        self.game.showGameOver.toggle()
+                        self.game.reset()
+                    }) {
+                        Text("New Game")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .navigationTitle("Game Over")
+        }
+    }
+}
+
 struct HeaderActions: View {
     @EnvironmentObject var game: GameModel
 
@@ -345,7 +428,10 @@ struct HeaderActions: View {
                 title: Text("Reset Game"),
                 message: Text("Are you sure you want to reset the game?"),
                 buttons: [
-                    .destructive(Text("Reset"), action: self.game.reset),
+                    .destructive(Text("Reset"), action: {
+                        Analytics.logEvent(AnalyticsEventReset, parameters: nil)
+                        self.game.reset()
+                    }),
                     .cancel(),
                 ]
             )
@@ -577,6 +663,10 @@ struct ContentView: View {
 
                 FooterActions()
             }
+        }
+        .sheet(isPresented: self.$game.showGameOver) {
+            GameOver()
+                .presentationDetents([.large])
         }
         .background(Color(UIColor.secondarySystemBackground))
         .environmentObject(self.game)

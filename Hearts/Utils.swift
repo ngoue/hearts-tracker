@@ -66,10 +66,13 @@ let AnalyticsEventEditButtonTapped = "edit_tapped"
 let AnalyticsEventEditDoneButtonTapped = "edit_done_tapped"
 let AnalyticsEventResetButtonTapped = "reset_tapped"
 let AnalyticsEventReset = "reset"
+let AnalyticsEventResetPlayerNames = "reset_player_names"
 let AnalyticsEventMoonRulesChanged = "moon_rules_changed"
 let AnalyticsEventAccentColorChanged = "accent_color_changed"
 let AnalyticsEventNextRoundButtonTapped = "next_round_tapped"
 let AnalyticsEventPreviousRoundButtonTapped = "previous_round_tapped"
+let AnalyticsEventKeepPlaying = "keep_playing"
+let AnalyticsEventNewGame = "new_game"
 
 // Analytics Parameters
 let AnalyticsParameterPreviousMoonRule = "previous_moon_rule"
