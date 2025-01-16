@@ -71,6 +71,7 @@ let AnalyticsEventMoonRulesChanged = "moon_rules_changed"
 let AnalyticsEventAccentColorChanged = "accent_color_changed"
 let AnalyticsEventNextRoundButtonTapped = "next_round_tapped"
 let AnalyticsEventPreviousRoundButtonTapped = "previous_round_tapped"
+let AnalyticsEventGameOver = "game_over"
 let AnalyticsEventKeepPlaying = "keep_playing"
 let AnalyticsEventNewGame = "new_game"
 

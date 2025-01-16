@@ -47,6 +47,10 @@ class Player: Identifiable {
         return round > self.scores.count ? 0 : self.scores[round]
     }
 
+    func runningScore(_ round: Int) -> Int {
+        return self.scores.prefix(round).reduce(0, +)
+    }
+
     func adjustPoints(_ points: Int, for round: Int) {
         if self.scores.count < round + 1 {
             self.scores.append(points)
@@ -161,7 +165,7 @@ class GameModel: ObservableObject {
                     }
 
                     // end the game!
-                    if player.totalScore >= 100 {
+                    if player.runningScore(self.round + 1) >= 100 {
                         self.showGameOver = true
                     }
                 }
@@ -357,26 +361,27 @@ struct Settings: View {
 
 struct GameOver: View {
     @EnvironmentObject var game: GameModel
+    @State var dismissAnalyticsEvent = AnalyticsEventKeepPlaying
 
     var body: some View {
         NavigationView {
             Form {
                 Section {
-                    ForEach(self.game.getPlayerRanks(), id: \.0.id) { (player, rank, score) in
+                    ForEach(self.game.getPlayerRanks(), id: \.0.id) { player, rank, score in
                         LabeledContent("\(rank) \(player.name.isEmpty ? "Player \(player.playerIndex)" : player.name)", value: String(score))
                     }
                 }
 
                 Section {
                     Button(action: {
-                        Analytics.logEvent(AnalyticsEventKeepPlaying, parameters: nil)
+                        self.dismissAnalyticsEvent = AnalyticsEventKeepPlaying
                         self.game.showGameOver.toggle()
                     }) {
                         Text("Keep Playing")
                     }
 
                     Button(action: {
-                        Analytics.logEvent(AnalyticsEventNewGame, parameters: nil)
+                        self.dismissAnalyticsEvent = AnalyticsEventNewGame
                         self.game.showGameOver.toggle()
                         self.game.reset()
                     }) {
@@ -386,6 +391,12 @@ struct GameOver: View {
                 }
             }
             .navigationTitle("Game Over")
+        }
+        .onAppear {
+            Analytics.logEvent(AnalyticsEventGameOver, parameters: nil)
+        }
+        .onDisappear {
+            Analytics.logEvent(self.dismissAnalyticsEvent, parameters: nil)
         }
     }
 }
@@ -474,8 +485,7 @@ struct PlayerView: View {
         if self.game.round == 0 {
             return "0"
         } else {
-            let score = self.player.scores.prefix(self.game.round).reduce(0) { $0 + $1 }
-            return String(score)
+            return String(self.player.runningScore(self.game.round))
         }
     }
 
