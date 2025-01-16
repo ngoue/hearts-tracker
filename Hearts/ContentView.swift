@@ -5,6 +5,7 @@
 //  Created by Jordan Gardner on 9/16/24.
 //
 
+import ConfettiSwiftUI
 import FirebaseAnalytics
 import SwiftUI
 import TinyStorage
@@ -362,6 +363,7 @@ struct Settings: View {
 struct GameOver: View {
     @EnvironmentObject var game: GameModel
     @State var dismissAnalyticsEvent = AnalyticsEventKeepPlaying
+    @State var trigger: Int = 0
 
     var body: some View {
         NavigationView {
@@ -394,10 +396,12 @@ struct GameOver: View {
         }
         .onAppear {
             Analytics.logEvent(AnalyticsEventGameOver, parameters: nil)
+            self.trigger += 1
         }
         .onDisappear {
             Analytics.logEvent(self.dismissAnalyticsEvent, parameters: nil)
         }
+        .confettiCannon(trigger: self.$trigger, confettis: [.text("❤️"), .text("💙"), .text("💚"), .text("💜")])
     }
 }
 

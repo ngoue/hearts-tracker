@@ -15,6 +15,7 @@
 		C01C56A52CC08C4900D18775 /* TinyStorage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01C56A42CC08C4300D18775 /* TinyStorage+Extension.swift */; };
 		C01C56A92CC0E03700D18775 /* TinyStorage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = C01C56A22CC08C3100D18775 /* TinyStorage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		C025D6152CAE3F2F007C0362 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025D6142CAE3F2F007C0362 /* Utils.swift */; };
+		C02DC4862D39C8170096DE6E /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = C02DC4852D39C8170096DE6E /* ConfettiSwiftUI */; };
 		C0300E052CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0300E042CA92CBD007FF6AA /* ButtonStyle+Extenstion.swift */; };
 		C062DDD22C993C5B005D613F /* HeartsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C062DDD12C993C5B005D613F /* HeartsApp.swift */; };
 		C062DDD42C993C5B005D613F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C062DDD32C993C5B005D613F /* ContentView.swift */; };
@@ -57,6 +58,7 @@
 			files = (
 				C00B3E242CB2E7A700CCE028 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 				C00B3E2C2CB393A700CCE028 /* FirebaseCrashlytics in Frameworks */,
+				C02DC4862D39C8170096DE6E /* ConfettiSwiftUI in Frameworks */,
 				C01C56A32CC08C3100D18775 /* TinyStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -162,6 +164,7 @@
 			packageReferences = (
 				C00B3E222CB2E7A700CCE028 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C01C56A12CC08C3100D18775 /* XCRemoteSwiftPackageReference "TinyStorage" */,
+				C02DC4842D39C8170096DE6E /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 			);
 			productRefGroup = C062DDCF2C993C5B005D613F /* Products */;
 			projectDirPath = "";
@@ -459,6 +462,14 @@
 				minimumVersion = 1.0.16;
 			};
 		};
+		C02DC4842D39C8170096DE6E /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -476,6 +487,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C01C56A12CC08C3100D18775 /* XCRemoteSwiftPackageReference "TinyStorage" */;
 			productName = TinyStorage;
+		};
+		C02DC4852D39C8170096DE6E /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C02DC4842D39C8170096DE6E /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
